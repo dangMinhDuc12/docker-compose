@@ -1,0 +1,40 @@
+# Chọn version của docker compose
+version: "3.8"
+# Khai báo các container ở trong services (tab vào 2 khoảng trắng)
+services:
+  mongodb:
+    # Chỉ định image cần dùng cho container (khi cần dùng image trên docker hub)
+    image: mongo
+    # Chỉ định volume cần dùng cho container
+    volumes:
+      - data:/data/db
+  backend:
+    # Chỉ định folder cần build ra images (khi cần dùng image tự tạo bằng Dockerfile)
+    build: ./backend
+    ports:
+      - "80:80"
+    volumes:
+      - logs:/app/logs
+      - ./backend:/app
+      - /app/node_modules
+    # Chỉ định services mà services này phụ thuộc (đợi services nó build và chạy xong mới đến lượt services này)
+    depends_on:
+      - mongodb
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend/src:/app/src
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+    # Chỉ định services này chạy với chế độ -it
+    stdin_open: true
+    tty: true
+    depends_on:
+      - backend
+
+# Với named volumes phải khai báo thêm volumes ở ngoài cùng
+volumes:
+  data:
+  logs:
